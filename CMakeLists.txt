@@ -396,8 +396,11 @@ if (NANOGUI_INSTALL)
           LIBRARY DESTINATION lib
           ARCHIVE DESTINATION lib)
 
-  install(DIRECTORY include/nanogui DESTINATION include
-          FILES_MATCHING PATTERN "*.h")
+  install(DIRECTORY
+    include/nanogui
+	ext/glfw/include/GLFW
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h")
 endif()
 
 if (NANOGUI_BUILD_SHARED)
