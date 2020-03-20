@@ -5,7 +5,7 @@ if (POLICY CMP0048)
   cmake_policy(SET CMP0048 NEW)
 endif()
 
-project("NanoGUI")
+project(mrpt-nanogui)
 
 if (POLICY CMP0058)
   cmake_policy(SET CMP0058 NEW)
@@ -23,18 +23,13 @@ else()
   set(NANOGUI_USE_GLAD_DEFAULT OFF)
 endif()
 
-option(NANOGUI_BUILD_EXAMPLE "Build NanoGUI example application?" ON)
+option(NANOGUI_BUILD_EXAMPLE "Build NanoGUI example application?" OFF)
 option(NANOGUI_BUILD_SHARED  "Build NanoGUI as a shared library?" ON)
-option(NANOGUI_BUILD_PYTHON  "Build a Python plugin for NanoGUI?" ON)
+option(NANOGUI_BUILD_PYTHON  "Build a Python plugin for NanoGUI?" OFF)
 option(NANOGUI_USE_GLAD      "Use Glad OpenGL loader library?" ${NANOGUI_USE_GLAD_DEFAULT})
 option(NANOGUI_INSTALL       "Install NanoGUI on `make install`?" ON)
 
 set(NANOGUI_PYTHON_VERSION "" CACHE STRING "Python version to use for compiling the Python plugin")
-
-# Required libraries, flags, and include files for compiling and linking against nanogui (all targets)
-set(NANOGUI_EXTRA_LIBS "")
-set(NANOGUI_EXTRA_DEFS "")
-set(NANOGUI_EXTRA_INCS "")
 
 # Platform-dependent files for libnanogui
 set(LIBNANOGUI_EXTRA_SOURCE "")
@@ -73,7 +68,7 @@ if (GLFW_FOUND)
     #target_link_libraries(simple ${GLFW_LIBRARIES})
 else()
     message(STATUS "GLFW: No system library found, building from sources.")
-    
+
     # Compile GLFW
     set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL " " FORCE)
     set(GLFW_BUILD_TESTS OFF CACHE BOOL " " FORCE)
@@ -82,12 +77,12 @@ else()
     set(GLFW_INSTALL OFF CACHE BOOL " " FORCE)
     set(GLFW_USE_CHDIR OFF CACHE BOOL " " FORCE)
     set(BUILD_SHARED_LIBS ${NANOGUI_BUILD_SHARED} CACHE BOOL " " FORCE)
-    
+
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # Quench annoying deprecation warnings when compiling GLFW on OSX
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
     endif()
-    
+
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw" "ext_build/glfw")
     # Two targets have now been defined: `glfw_objects`, which will be merged into
     # NanoGUI at the end, and `glfw`.  The `glfw` target is the library itself
@@ -95,21 +90,11 @@ else()
     # (because we merge `glfw_objects` into NanoGUI).  Skipping is required for
     # XCode, but preferable for all build systems (reduces build artifacts).
     set_target_properties(glfw PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
-    
+
     set(OPTIONAL_GLFW_OBJECTS $<TARGET_OBJECTS:glfw_objects>)
 
 endif()
 
-    
-# Python support: add NANOGUI_PYTHON flag to all targets
-if (NANOGUI_BUILD_PYTHON)
-  list(APPEND NANOGUI_EXTRA_DEFS -DNANOGUI_PYTHON)
-endif()
-
-# Shared library mode: add dllimport/dllexport flags to all symbols
-if (NANOGUI_BUILD_SHARED)
-  list(APPEND NANOGUI_EXTRA_DEFS -DNANOGUI_SHARED -DNVG_SHARED -DGLAD_GLAPI_EXPORT)
-endif()
 
 if (MSVC)
   # Disable annoying MSVC warnings (all targets)
@@ -230,37 +215,12 @@ if (NANOGUI_USE_GLAD)
 endif()
 
 
-#list(APPEND NANOGUI_EXTRA_INCS
-#  "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include"
-#  "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src"
-#)
-
 if (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
   include_directories(/usr/local/include)
   link_directories(/usr/local/lib)
   if(${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD")
     include_directories(/usr/X11R6/include/)
     link_directories(/usr/X11R6/lib)
-  endif()
-endif()
-
-# Required core libraries on various platforms
-if (WIN32)
-  list(APPEND NANOGUI_EXTRA_LIBS opengl32)
-elseif (APPLE)
-  find_library(cocoa_library Cocoa)
-  find_library(opengl_library OpenGL)
-  find_library(corevideo_library CoreVideo)
-  find_library(iokit_library IOKit)
-  list(APPEND NANOGUI_EXTRA_LIBS ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
-  list(APPEND LIBNANOGUI_EXTRA_SOURCE src/darwin.mm)
-elseif(CMAKE_SYSTEM MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "BSD")
-  list(APPEND NANOGUI_EXTRA_LIBS GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread )
-  if (NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
-    list(APPEND NANOGUI_EXTRA_LIBS rt)
-  endif()
-  if(CMAKE_SYSTEM MATCHES "Linux")
-    list(APPEND NANOGUI_EXTRA_LIBS dl)
   endif()
 endif()
 
@@ -310,10 +270,12 @@ if (APPLE)
   add_compile_options(-fobjc-arc)
 endif()
 
-add_definitions(${NANOGUI_EXTRA_DEFS})
+if (APPLE)
+    list(APPEND LIBNANOGUI_EXTRA_SOURCE src/darwin.mm)
+endif()
 
 # Compile main NanoGUI library
-add_library(nanogui  ${NANOGUI_LIBRARY_TYPE}
+add_library(${PROJECT_NAME}  ${NANOGUI_LIBRARY_TYPE}
   # Merge NanoVG into the NanoGUI library
   ext/nanovg/src/nanovg.c
   # Merge GLAD into the NanoGUI library (only if needed)
@@ -359,62 +321,92 @@ add_library(nanogui  ${NANOGUI_LIBRARY_TYPE}
 )
 
 # create alias to make CMake scripts to work as if the project has been really imported:
-add_library(nanogui::nanogui ALIAS nanogui)
+add_library(mrpt::nanogui ALIAS ${PROJECT_NAME})
 
-target_link_libraries(nanogui PUBLIC Eigen3::Eigen)
+target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
 if (NANOGUI_BUILD_SHARED)
-  set_property(TARGET nanogui PROPERTY POSITION_INDEPENDENT_CODE ON)
+  set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+endif()
+
+# Required core libraries on various platforms
+if (WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
+elseif (APPLE)
+    find_library(cocoa_library Cocoa)
+    find_library(opengl_library OpenGL)
+    find_library(corevideo_library CoreVideo)
+    find_library(iokit_library IOKit)
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
+elseif(CMAKE_SYSTEM MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "BSD")
+    target_link_libraries(${PROJECT_NAME} PRIVATE GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread)
+    if (NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
+        target_link_libraries(${PROJECT_NAME} PRIVATE rt)
+    endif()
+    if(CMAKE_SYSTEM MATCHES "Linux")
+        target_link_libraries(${PROJECT_NAME} PRIVATE dl)
+    endif()
+endif()
+
+# Python support: add NANOGUI_PYTHON flag to all targets
+if (NANOGUI_BUILD_PYTHON)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE -DNANOGUI_PYTHON)
 endif()
 
 # Compile/link flags for NanoGUI
-target_compile_definitions(nanogui PUBLIC "NANOGUI_BUILD;NVG_BUILD")
+target_compile_definitions(${PROJECT_NAME} PUBLIC "NANOGUI_BUILD;NVG_BUILD")
 
 if (NANOGUI_USE_GLAD)
-    target_include_directories(nanogui PUBLIC
+    target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/glad/include>
-        $<INSTALL_INTERFACE:include/mrpt/gui/include>
+        $<INSTALL_INTERFACE:include/mrpt/nanogui/include>
         )
     #TODO: Install GLAD in Windows to mrpt/gui/include
-    
-    target_compile_definitions(nanogui PUBLIC -DNANOGUI_GLAD)
+
+    target_compile_definitions(${PROJECT_NAME} PUBLIC -DNANOGUI_GLAD)
 endif()
 
 # Includes: GLFW
 if (GLFW_FOUND)
-    target_include_directories(nanogui PUBLIC ${GLFW_INCLUDE_DIRS})
-    target_link_libraries(nanogui PUBLIC ${GLFW_LIBRARIES})
+    target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES})
 else()
-    target_include_directories(nanogui PUBLIC
+    target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/glfw/include>
-        $<INSTALL_INTERFACE:include/mrpt/gui/include>
+        $<INSTALL_INTERFACE:include/mrpt/nanogui/include>
         )
 endif()
 # NANOVG:
-target_include_directories(nanogui PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/nanovg/src>
-        $<INSTALL_INTERFACE:include/mrpt/gui/include>
+        $<INSTALL_INTERFACE:include/mrpt/nanogui/include>
         )
 # NANOGUI itself:
-target_include_directories(nanogui PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include/mrpt/gui/include>
+        $<INSTALL_INTERFACE:include/mrpt/nanogui/include>
         )
 
-#include_directories(ext/glfw/include ext/nanovg/src include ${CMAKE_CURRENT_BINARY_DIR})
-
-
-
-if (NANOGUI_USE_GLAD AND NANOGUI_BUILD_SHARED)
-    target_compile_definitions(nanogui PUBLIC GLAD_GLAPI_EXPORT GLAD_GLAPI_EXPORT_BUILD)
+# Shared library mode: add dllimport/dllexport flags to all symbols
+if (NANOGUI_BUILD_SHARED)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC -DNANOGUI_SHARED -DNVG_SHARED -DGLAD_GLAPI_EXPORT)
 endif()
 
-if (NANOGUI_BUILD_SHARED)
-  target_link_libraries(nanogui PRIVATE ${NANOGUI_EXTRA_LIBS})
+# Ensure we use a valid .so.x.y.z file name according to common use:
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    OUTPUT_NAME ${MRPT_LIB_PREFIX}${PROJECT_NAME}${MRPT_DLL_VERSION_POSTFIX}
+    COMPILE_PDB_NAME "${MRPT_LIB_PREFIX}${PROJECT_NAME}${MRPT_DLL_VERSION_POSTFIX}"
+    COMPILE_PDB_NAME_DEBUG "${MRPT_LIB_PREFIX}${PROJECT_NAME}${MRPT_DLL_VERSION_POSTFIX}${CMAKE_DEBUG_POSTFIX}"
+    VERSION "${CMAKE_MRPT_VERSION_NUMBER_MAJOR}.${CMAKE_MRPT_VERSION_NUMBER_MINOR}.${CMAKE_MRPT_VERSION_NUMBER_PATCH}"
+    SOVERSION ${CMAKE_MRPT_VERSION_NUMBER_MAJOR}.${CMAKE_MRPT_VERSION_NUMBER_MINOR}
+    )
+
+if (NANOGUI_USE_GLAD AND NANOGUI_BUILD_SHARED)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC GLAD_GLAPI_EXPORT GLAD_GLAPI_EXPORT_BUILD)
 endif()
 
 if (NANOGUI_INSTALL)
-	install(TARGETS nanogui EXPORT nanogui-targets
+	install(TARGETS ${PROJECT_NAME} EXPORT mrpt-nanogui-targets
 		RUNTIME DESTINATION bin  COMPONENT Libraries
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Libraries
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Libraries
@@ -424,70 +416,85 @@ if (NANOGUI_INSTALL)
 	# For local usage from the BUILD directory (without "install"):
 	# 1/3: autogenerated target file:
 	export(
-		TARGETS nanogui
-		FILE "${CMAKE_BINARY_DIR}/nanogui-targets.cmake"
-		NAMESPACE nanogui::
+		TARGETS ${PROJECT_NAME}
+		FILE "${CMAKE_BINARY_DIR}/mrpt-nanogui-targets.cmake"
+		NAMESPACE mrpt::
 	)
 	# 2/3: config file with manual list of dependencies:
 	set(MRPT_MODULE_NAME nanogui)
 	configure_file(
 		"${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.cmake.in"
-		"${CMAKE_BINARY_DIR}/nanogui-config.cmake" IMMEDIATE @ONLY)
+		"${CMAKE_BINARY_DIR}/mrpt-nanogui-config.cmake" IMMEDIATE @ONLY)
 	# 3/3: version file:
 	write_basic_package_version_file(
-		"${CMAKE_BINARY_DIR}/nanogui-config-version.cmake"
+		"${CMAKE_BINARY_DIR}/mrpt-nanogui-config-version.cmake"
 		VERSION ${CMAKE_MRPT_FULL_VERSION}
 		COMPATIBILITY SameMajorVersion
 	)
 
 	if(CMAKE_MRPT_USE_DEB_POSTFIXS)
-		set(this_lib_dev_INSTALL_PREFIX "libmrpt-gui-dev/usr/")
+		set(this_lib_dev_INSTALL_PREFIX "libmrpt-nanogui-dev/usr/")
 	endif()
 
 	# mrpt-xxx-config.cmake file:
 	# Makes the project importable from installed dir:
 	# 1/3: autogenerated target file:
 	install(
-		EXPORT nanogui-targets
-		DESTINATION share/nanogui
-		NAMESPACE nanogui::
+		EXPORT mrpt-nanogui-targets
+		DESTINATION share/mrpt-nanogui
+		NAMESPACE mrpt::
 	)
 	# 2/3: config file with manual list of dependencies:
 	# 3/3: version file:
 	install(
 		FILES
-			"${CMAKE_BINARY_DIR}/nanogui-config.cmake"
-			"${CMAKE_BINARY_DIR}/nanogui-config-version.cmake"
-		DESTINATION share/nanogui
+			"${CMAKE_BINARY_DIR}/mrpt-nanogui-config.cmake"
+			"${CMAKE_BINARY_DIR}/mrpt-nanogui-config-version.cmake"
+		DESTINATION share/mrpt-nanogui
 	)
 
 	# Install public headers:
-	set(HEADERS_DIR "${MRPT_SOURCE_DIR}/libs/${name}/include/")
+	set(HEADERS_DIR "${MRPT_SOURCE_DIR}/libs/nanogui/include/")
 	if (EXISTS "${HEADERS_DIR}")  # This is mainly to avoid problems with "virtual module" names
 		install(
 		DIRECTORY
 			"${HEADERS_DIR}"
 		DESTINATION
-			${this_lib_dev_INSTALL_PREFIX}include/mrpt/${name}/include/
+			${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
 		)
 	endif()
 
-#  install(TARGETS nanogui
-#          EXPORT nanogui-targets
-#          LIBRARY DESTINATION lib
-#          ARCHIVE DESTINATION lib)
+    install(DIRECTORY
+        include/nanogui
+        DESTINATION
+        ${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+        FILES_MATCHING PATTERN "*.h")
 
-#	ext/glfw/include/GLFW
-  install(DIRECTORY
-    include/nanogui
-		DESTINATION
-			${this_lib_dev_INSTALL_PREFIX}include/mrpt/gui/include/
-			FILES_MATCHING PATTERN "*.h")
+    install(FILES
+        ext/nanovg/src/nanovg_gl_utils.h
+        ext/nanovg/src/stb_image.h
+        ext/nanovg/src/nanovg.h
+        ext/nanovg/src/fontstash.h
+        ext/nanovg/src/stb_truetype.h
+        ext/nanovg/src/nanovg_gl.h
+        DESTINATION
+        ${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+        )
+
+    # GLFW3 if not present in the system:
+    if (NOT GLFW_FOUND)
+        #
+        install(DIRECTORY
+            ext/glfw/include/GLFW
+            DESTINATION
+            ${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+            )
+    endif()
 endif()
 
 if (NANOGUI_BUILD_SHARED)
   # When GLFW is merged into the NanoGUI library, this flag must be specified
-  set_property(TARGET nanogui APPEND PROPERTY COMPILE_DEFINITIONS "_GLFW_BUILD_DLL;NVG_SHARED")
+  set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "_GLFW_BUILD_DLL;NVG_SHARED")
 endif()
 
 # Quench warnings while compiling NanoVG
@@ -504,11 +511,11 @@ if(NANOGUI_BUILD_EXAMPLE)
   add_executable(example3      src/example3.cpp)
   add_executable(example4      src/example4.cpp)
   add_executable(example_icons src/example_icons.cpp)
-  target_link_libraries(example1      nanogui ${NANOGUI_EXTRA_LIBS})
-  target_link_libraries(example2      nanogui ${NANOGUI_EXTRA_LIBS})
-  target_link_libraries(example3      nanogui ${NANOGUI_EXTRA_LIBS})
-  target_link_libraries(example4      nanogui ${NANOGUI_EXTRA_LIBS})
-  target_link_libraries(example_icons nanogui ${NANOGUI_EXTRA_LIBS})
+  target_link_libraries(example1      ${PROJECT_NAME})
+  target_link_libraries(example2      ${PROJECT_NAME})
+  target_link_libraries(example3      ${PROJECT_NAME})
+  target_link_libraries(example4      ${PROJECT_NAME})
+  target_link_libraries(example_icons ${PROJECT_NAME})
 
   # Copy icons for example application
   file(COPY resources/icons DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
@@ -532,7 +539,7 @@ endif()
 
 if (NANOGUI_BUILD_PYTHON)
   # Need PIC code in libnanogui even when compiled as a static library
-  set_target_properties(nanogui PROPERTIES POSITION_INDEPENDENT_CODE ON)
+  set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
   set_target_properties(glfw_objects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
   include_directories("ext/pybind11/include" ${PYTHON_INCLUDE_DIR})
@@ -559,7 +566,7 @@ if (NANOGUI_BUILD_PYTHON)
   add_library(nanogui-python SHARED $<TARGET_OBJECTS:nanogui-python-obj>)
   set_property(TARGET nanogui-python-obj PROPERTY POSITION_INDEPENDENT_CODE ON)
   set_target_properties(nanogui-python PROPERTIES OUTPUT_NAME "nanogui")
-  target_link_libraries(nanogui-python nanogui ${NANOGUI_EXTRA_LIBS})
+  target_link_libraries(nanogui-python nanogui)
 
   # Quench warnings on GCC
   if (CMAKE_COMPILER_IS_GNUCC)
@@ -622,9 +629,7 @@ endif()
 get_directory_property(NANOGUI_HAS_PARENT PARENT_DIRECTORY)
 if(NANOGUI_HAS_PARENT)
   # This project is included from somewhere else. Export NANOGUI_EXTRA_LIBS variable
-  set(NANOGUI_EXTRA_LIBS ${NANOGUI_EXTRA_LIBS} PARENT_SCOPE)
-  set(NANOGUI_EXTRA_DEFS ${NANOGUI_EXTRA_DEFS} PARENT_SCOPE)
-  set(NANOGUI_EXTRA_INCS ${NANOGUI_EXTRA_INCS} PARENT_SCOPE)
+  # 2020: JLBC: changed to cmake exported targets, no need for custom variables.
 else()
   # Create documentation for python plugin (optional target for developers)
 
