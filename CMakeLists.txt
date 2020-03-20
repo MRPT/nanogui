@@ -11,8 +11,8 @@ if (POLICY CMP0058)
   cmake_policy(SET CMP0058 NEW)
 endif()
 
-if (NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/src")
-  message(FATAL_ERROR "The NanoGUI dependency repositories (GLFW, etc.) are missing! "
+if (NOT IS_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src")
+  message(FATAL_ERROR "The NanoGUI dependency repositories (NANOVG, etc.) are missing! "
     "You probably did not clone the project with --recursive. It is possible to recover "
     "by calling \"git submodule update --init --recursive\"")
 endif()
@@ -64,28 +64,43 @@ macro(CHECK_CXX_COMPILER_AND_LINKER_FLAGS _RESULT _CXX_FLAGS _LINKER_FLAGS)
   set(CMAKE_REQUIRED_LIBRARIES "")
 endmacro()
 
-# Compile GLFW
-set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL " " FORCE)
-set(GLFW_BUILD_TESTS OFF CACHE BOOL " " FORCE)
-set(GLFW_BUILD_DOCS OFF CACHE BOOL " " FORCE)
-set(GLFW_BUILD_INSTALL OFF CACHE BOOL " " FORCE)
-set(GLFW_INSTALL OFF CACHE BOOL " " FORCE)
-set(GLFW_USE_CHDIR OFF CACHE BOOL " " FORCE)
-set(BUILD_SHARED_LIBS ${NANOGUI_BUILD_SHARED} CACHE BOOL " " FORCE)
+# GLFW: Build from sources in Windows, use system version in UNIX:
+find_package(PkgConfig REQUIRED)
+pkg_search_module(GLFW glfw3)
+if (GLFW_FOUND)
+    message(STATUS "GLFW: System library found.")
+    #include_directories(${GLFW_INCLUDE_DIRS})
+    #target_link_libraries(simple ${GLFW_LIBRARIES})
+else()
+    message(STATUS "GLFW: No system library found, building from sources.")
+    
+    # Compile GLFW
+    set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL " " FORCE)
+    set(GLFW_BUILD_TESTS OFF CACHE BOOL " " FORCE)
+    set(GLFW_BUILD_DOCS OFF CACHE BOOL " " FORCE)
+    set(GLFW_BUILD_INSTALL OFF CACHE BOOL " " FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL " " FORCE)
+    set(GLFW_USE_CHDIR OFF CACHE BOOL " " FORCE)
+    set(BUILD_SHARED_LIBS ${NANOGUI_BUILD_SHARED} CACHE BOOL " " FORCE)
+    
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        # Quench annoying deprecation warnings when compiling GLFW on OSX
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
+    endif()
+    
+    add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw" "ext_build/glfw")
+    # Two targets have now been defined: `glfw_objects`, which will be merged into
+    # NanoGUI at the end, and `glfw`.  The `glfw` target is the library itself
+    # (e.g., libglfw.so), but can be skipped as we do not need to link against it
+    # (because we merge `glfw_objects` into NanoGUI).  Skipping is required for
+    # XCode, but preferable for all build systems (reduces build artifacts).
+    set_target_properties(glfw PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+    
+    set(OPTIONAL_GLFW_OBJECTS $<TARGET_OBJECTS:glfw_objects>)
 
-if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  # Quench annoying deprecation warnings when compiling GLFW on OSX
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
 endif()
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw" "ext_build/glfw")
-# Two targets have now been defined: `glfw_objects`, which will be merged into
-# NanoGUI at the end, and `glfw`.  The `glfw` target is the library itself
-# (e.g., libglfw.so), but can be skipped as we do not need to link against it
-# (because we merge `glfw_objects` into NanoGUI).  Skipping is required for
-# XCode, but preferable for all build systems (reduces build artifacts).
-set_target_properties(glfw PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
-
+    
 # Python support: add NANOGUI_PYTHON flag to all targets
 if (NANOGUI_BUILD_PYTHON)
   list(APPEND NANOGUI_EXTRA_DEFS -DNANOGUI_PYTHON)
@@ -215,11 +230,10 @@ if (NANOGUI_USE_GLAD)
 endif()
 
 
-list(APPEND NANOGUI_EXTRA_INCS
-  "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include"
-  "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src"
-)
-
+#list(APPEND NANOGUI_EXTRA_INCS
+#  "${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw/include"
+#  "${CMAKE_CURRENT_SOURCE_DIR}/ext/nanovg/src"
+#)
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "BSD")
   include_directories(/usr/local/include)
@@ -341,7 +355,7 @@ add_library(nanogui  ${NANOGUI_LIBRARY_TYPE}
   include/nanogui/serializer/opengl.h
   include/nanogui/serializer/sparse.h
   src/serializer.cpp
-  $<TARGET_OBJECTS:glfw_objects>
+  ${OPTIONAL_GLFW_OBJECTS}
 )
 
 # create alias to make CMake scripts to work as if the project has been really imported:
@@ -367,11 +381,15 @@ if (NANOGUI_USE_GLAD)
 endif()
 
 # Includes: GLFW
-#TODO: check system GLFW
-target_include_directories(nanogui PUBLIC
+if (GLFW_FOUND)
+    target_include_directories(nanogui PUBLIC ${GLFW_INCLUDE_DIRS})
+    target_link_libraries(nanogui PUBLIC ${GLFW_LIBRARIES})
+else()
+    target_include_directories(nanogui PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/glfw/include>
         $<INSTALL_INTERFACE:include/mrpt/gui/include>
         )
+endif()
 # NANOVG:
 target_include_directories(nanogui PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/nanovg/src>
