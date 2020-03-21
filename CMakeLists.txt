@@ -347,7 +347,7 @@ elseif (APPLE)
     find_library(iokit_library IOKit)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
 elseif(CMAKE_SYSTEM MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "BSD")
-    target_link_libraries(${PROJECT_NAME} PRIVATE GL Xxf86vm Xrandr Xinerama Xcursor Xi X11 pthread)
+    target_link_libraries(${PROJECT_NAME} PRIVATE GL Xxf86vm Xrandr X11 pthread) # Xinerama Xcursor Xi
     if (NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
         target_link_libraries(${PROJECT_NAME} PRIVATE rt)
     endif()
