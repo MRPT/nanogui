@@ -82,7 +82,7 @@ else()
     set(GLFW_BUILD_INSTALL OFF CACHE BOOL " " FORCE)
 
     # Install required to export cmake targets
-    set(GLFW_INSTALL ON CACHE BOOL " " FORCE)
+    set(GLFW_INSTALL OFF CACHE BOOL " " FORCE)
 
     set(GLFW_USE_CHDIR OFF CACHE BOOL " " FORCE)
 
@@ -387,6 +387,21 @@ else()
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/glfw/include>
         $<INSTALL_INTERFACE:include/mrpt/nanogui/include>
         )
+
+    install(TARGETS glfw EXPORT glfw-targets
+      RUNTIME DESTINATION bin  COMPONENT Libraries
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Libraries
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Libraries
+    )
+    export(
+      TARGETS glfw
+      FILE "${CMAKE_BINARY_DIR}/glfw-targets.cmake"
+    )
+
+    install(
+      EXPORT glfw-targets
+      DESTINATION share/glfw
+    )
 endif()
 
 # NANOVG:
