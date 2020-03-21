@@ -23,8 +23,10 @@ else()
   set(NANOGUI_USE_GLAD_DEFAULT OFF)
 endif()
 
+set(NANOGUI_BUILD_SHARED_DEFAULT ON)
+
 option(NANOGUI_BUILD_EXAMPLE "Build NanoGUI example application?" OFF)
-option(NANOGUI_BUILD_SHARED  "Build NanoGUI as a shared library?" ON)
+set(NANOGUI_BUILD_SHARED ${NANOGUI_BUILD_SHARED_DEFAULT} CACHE BOOL "Build NanoGUI as a shared library?" FORCE)
 option(NANOGUI_BUILD_PYTHON  "Build a Python plugin for NanoGUI?" OFF)
 option(NANOGUI_USE_GLAD      "Use Glad OpenGL loader library?" ${NANOGUI_USE_GLAD_DEFAULT})
 option(NANOGUI_INSTALL       "Install NanoGUI on `make install`?" ON)
@@ -60,8 +62,12 @@ macro(CHECK_CXX_COMPILER_AND_LINKER_FLAGS _RESULT _CXX_FLAGS _LINKER_FLAGS)
 endmacro()
 
 # GLFW: Build from sources in Windows, use system version in UNIX:
-find_package(PkgConfig REQUIRED)
-pkg_search_module(GLFW glfw3)
+find_package(PkgConfig QUIET)
+
+if (PKG_CONFIG_FOUND)
+  pkg_search_module(GLFW glfw3)
+endif()
+
 if (GLFW_FOUND)
     message(STATUS "GLFW: System library found.")
     #include_directories(${GLFW_INCLUDE_DIRS})
@@ -76,7 +82,6 @@ else()
     set(GLFW_BUILD_INSTALL OFF CACHE BOOL " " FORCE)
     set(GLFW_INSTALL OFF CACHE BOOL " " FORCE)
     set(GLFW_USE_CHDIR OFF CACHE BOOL " " FORCE)
-    set(BUILD_SHARED_LIBS ${NANOGUI_BUILD_SHARED} CACHE BOOL " " FORCE)
 
     if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         # Quench annoying deprecation warnings when compiling GLFW on OSX
@@ -89,10 +94,10 @@ else()
     # (e.g., libglfw.so), but can be skipped as we do not need to link against it
     # (because we merge `glfw_objects` into NanoGUI).  Skipping is required for
     # XCode, but preferable for all build systems (reduces build artifacts).
-    set_target_properties(glfw PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
-
-    set(OPTIONAL_GLFW_OBJECTS $<TARGET_OBJECTS:glfw_objects>)
-
+    # JLBC 2020: This leads to runtime weird errors in MSVC: disabled.
+    #set_target_properties(glfw PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+    #set(OPTIONAL_GLFW_OBJECTS $<TARGET_OBJECTS:glfw_objects>)
+    set(GLFW_LIBRARIES glfw)
 endif()
 
 
@@ -366,16 +371,35 @@ if (NANOGUI_USE_GLAD)
     target_compile_definitions(${PROJECT_NAME} PUBLIC -DNANOGUI_GLAD)
 endif()
 
+# Don't export ALL symbols for this project, since it seems to cause problems in MSVC:
+set_target_properties(${PROJECT_NAME} PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS 0)
+
 # Includes: GLFW
 if (GLFW_FOUND)
     target_include_directories(${PROJECT_NAME} PUBLIC ${GLFW_INCLUDE_DIRS})
     target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES})
 else()
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES})
     target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/glfw/include>
         $<INSTALL_INTERFACE:include/mrpt/nanogui/include>
         )
+
+    install(TARGETS glfw EXPORT glfw-targets
+      RUNTIME DESTINATION bin  COMPONENT Libraries
+      LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Libraries
+      ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Libraries
+    )
+    export(
+      TARGETS glfw
+      FILE "${CMAKE_BINARY_DIR}/glfw-targets.cmake"
+      )
+	  install(
+		  EXPORT glfw-targets
+		  DESTINATION share/glfw
+	  )
 endif()
+
 # NANOVG:
 target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/nanovg/src>
@@ -402,7 +426,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     )
 
 if (NANOGUI_USE_GLAD AND NANOGUI_BUILD_SHARED)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC GLAD_GLAPI_EXPORT GLAD_GLAPI_EXPORT_BUILD)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC GLAD_GLAPI_EXPORT)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT_BUILD)
 endif()
 
 if (NANOGUI_INSTALL)
@@ -494,7 +519,7 @@ endif()
 
 if (NANOGUI_BUILD_SHARED)
   # When GLFW is merged into the NanoGUI library, this flag must be specified
-  set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "_GLFW_BUILD_DLL;NVG_SHARED")
+  set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "GLFW_DLL;NVG_SHARED")
 endif()
 
 # Quench warnings while compiling NanoVG
