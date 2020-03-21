@@ -39,6 +39,11 @@
 #define NANOVG_GL3_IMPLEMENTATION
 #include <nanovg_gl.h>
 
+// JLBC for MRPT: Fix for older GLFW version in Ubuntu Xenial:
+#ifndef GLFW_MAXIMIZED
+#define GLFW_MAXIMIZED              0x00020008
+#endif
+
 NAMESPACE_BEGIN(nanogui)
 
 std::map<GLFWwindow *, Screen *> __nanogui_screens;
