@@ -91,6 +91,13 @@ else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
     endif()
 
+    # Set these variables for glfw, since we cannot control its target directly
+    # for it being an external project:
+    set(caod_backup ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+    set(crod_backup ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/")
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/")
+
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw" "ext_build/glfw")
     # Two targets have now been defined: `glfw_objects`, which will be merged into
     # NanoGUI at the end, and `glfw`.  The `glfw` target is the library itself
@@ -101,6 +108,12 @@ else()
     #set_target_properties(glfw PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
     #set(OPTIONAL_GLFW_OBJECTS $<TARGET_OBJECTS:glfw_objects>)
     set(GLFW_LIBRARIES glfw)
+
+    # undo changes of global variables:
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${caod_backup})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${crod_backup})
+    unset(caod_backup)
+    unset(crod_backup)
 endif()
 
 
@@ -425,6 +438,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     OUTPUT_NAME ${MRPT_LIB_PREFIX}${PROJECT_NAME}${MRPT_DLL_VERSION_POSTFIX}
     COMPILE_PDB_NAME "${MRPT_LIB_PREFIX}${PROJECT_NAME}${MRPT_DLL_VERSION_POSTFIX}"
     COMPILE_PDB_NAME_DEBUG "${MRPT_LIB_PREFIX}${PROJECT_NAME}${MRPT_DLL_VERSION_POSTFIX}${CMAKE_DEBUG_POSTFIX}"
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/"
     VERSION "${CMAKE_MRPT_VERSION_NUMBER_MAJOR}.${CMAKE_MRPT_VERSION_NUMBER_MINOR}.${CMAKE_MRPT_VERSION_NUMBER_PATCH}"
     SOVERSION ${CMAKE_MRPT_VERSION_NUMBER_MAJOR}.${CMAKE_MRPT_VERSION_NUMBER_MINOR}
     )
