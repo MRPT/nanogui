@@ -295,6 +295,13 @@ if (APPLE)
     list(APPEND LIBNANOGUI_EXTRA_SOURCE src/darwin.mm)
 endif()
 
+# For older cmake versions:
+if(NOT MSVC AND NOT COMMAND target_link_options)
+  #target_link_options(${PROJECT_NAME} PRIVATE -fPIC)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fPIC")
+endif()
+
 # Compile main NanoGUI library
 add_library(${PROJECT_NAME}  ${NANOGUI_LIBRARY_TYPE}
   # Merge NanoVG into the NanoGUI library
@@ -344,15 +351,19 @@ add_library(${PROJECT_NAME}  ${NANOGUI_LIBRARY_TYPE}
 # create alias to make CMake scripts to work as if the project has been really imported:
 add_library(mrpt::nanogui ALIAS ${PROJECT_NAME})
 
+if (NOT TARGET Eigen3::Eigen)
+    find_package(Eigen3)
+endif()
+
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
-if (NANOGUI_BUILD_SHARED)
-  # The next flag leads to -fPIE, but we ned -fPIC:
-  #set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
-
-  # for gcc and clang, we must build libraries as fPIC:
-  if(NOT MSVC)
-      target_compile_options(${PROJECT_NAME} PRIVATE "-fPIC")
+# The next flag leads to -fPIE, but we ned -fPIC:
+#set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+# for gcc and clang, we must build libraries as fPIC:
+if(NOT MSVC)
+  target_compile_options(${PROJECT_NAME} PRIVATE -fPIC)
+  if (COMMAND target_link_options)
+      target_link_options(${PROJECT_NAME} PRIVATE -fPIC)
   endif()
 endif()
 
@@ -455,7 +466,7 @@ if (NANOGUI_USE_GLAD AND NANOGUI_BUILD_SHARED)
     target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT_BUILD)
 endif()
 
-if (NANOGUI_INSTALL)
+if (NANOGUI_INSTALL AND EXISTS "${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.cmake.in")
 	install(TARGETS ${PROJECT_NAME} EXPORT mrpt-nanogui-targets
 		RUNTIME DESTINATION bin  COMPONENT Libraries
 		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT Libraries
