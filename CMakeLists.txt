@@ -347,7 +347,13 @@ add_library(mrpt::nanogui ALIAS ${PROJECT_NAME})
 target_link_libraries(${PROJECT_NAME} PUBLIC Eigen3::Eigen)
 
 if (NANOGUI_BUILD_SHARED)
-  set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+  # The next flag leads to -fPIE, but we ned -fPIC:
+  #set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
+
+  # for gcc and clang, we must build libraries as fPIC:
+  if(NOT MSVC)
+      target_compile_options(${PROJECT_NAME} PRIVATE "-fPIC")
+  endif()
 endif()
 
 # Required core libraries on various platforms
