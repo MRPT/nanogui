@@ -490,7 +490,7 @@ if (NANOGUI_INSTALL AND EXISTS "${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.c
 	write_basic_package_version_file(
 		"${CMAKE_BINARY_DIR}/mrpt-nanogui-config-version.cmake"
 		VERSION ${CMAKE_MRPT_FULL_VERSION}
-		COMPATIBILITY SameMajorVersion
+		COMPATIBILITY AnyNewerVersion
 	)
 
 	if(CMAKE_MRPT_USE_DEB_POSTFIXS)
