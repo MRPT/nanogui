@@ -485,6 +485,9 @@ if (NANOGUI_INSTALL AND EXISTS "${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.c
 	)
 	# 2/3: config file with manual list of dependencies:
 	set(MRPT_MODULE_NAME nanogui)
+  if (NOT GLFW_FOUND) # for windows builds, mainly
+    set(ALL_DEPS_LIST glfw)
+  endif()
 	configure_file(
 		"${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.cmake.in"
 		"${CMAKE_BINARY_DIR}/mrpt-nanogui-config.cmake" IMMEDIATE @ONLY)
