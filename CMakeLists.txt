@@ -427,6 +427,8 @@ else()
       TARGETS glfw
       FILE "${CMAKE_BINARY_DIR}/glfw-targets.cmake"
     )
+    file(WRITE "${CMAKE_BINARY_DIR}/glfw-config.cmake"
+      "include(\"\${CMAKE_CURRENT_LIST_DIR}/glfw-targets.cmake\")")
 
     install(
       EXPORT glfw-targets
