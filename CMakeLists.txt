@@ -611,7 +611,6 @@ endif()
 if (NANOGUI_BUILD_PYTHON)
   # Need PIC code in libnanogui even when compiled as a static library
   set_target_properties(${PROJECT_NAME} PROPERTIES POSITION_INDEPENDENT_CODE ON)
-  set_target_properties(glfw_objects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
   include_directories("ext/pybind11/include" ${PYTHON_INCLUDE_DIR})
   add_library(nanogui-python-obj OBJECT
@@ -637,7 +636,12 @@ if (NANOGUI_BUILD_PYTHON)
   add_library(nanogui-python SHARED $<TARGET_OBJECTS:nanogui-python-obj>)
   set_property(TARGET nanogui-python-obj PROPERTY POSITION_INDEPENDENT_CODE ON)
   set_target_properties(nanogui-python PROPERTIES OUTPUT_NAME "nanogui")
-  target_link_libraries(nanogui-python nanogui)
+  target_link_libraries(nanogui-python ${PROJECT_NAME} Eigen3::Eigen)
+
+  target_link_libraries(nanogui-python-obj PUBLIC Eigen3::Eigen)
+  target_include_directories(nanogui-python-obj PUBLIC ${${PROJECT_NAME}_SOURCE_DIR}/include)
+  target_include_directories(nanogui-python-obj PUBLIC ${PROJECT_NAME})
+  target_include_directories(nanogui-python-obj PUBLIC $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/ext/nanovg/src>)
 
   # Quench warnings on GCC
   if (CMAKE_COMPILER_IS_GNUCC)
