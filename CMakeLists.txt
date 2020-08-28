@@ -451,11 +451,13 @@ target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> # For nanogui-config.h
         $<INSTALL_INTERFACE:include/mrpt/nanogui/include>
         )
-        
+
 # Shared library mode: add dllimport/dllexport flags to all symbols
 if (NANOGUI_BUILD_SHARED)
     file(APPEND ${NANOGUI_CONFIG_FILE} "#define NANOGUI_SHARED\n")
-    file(APPEND ${NANOGUI_CONFIG_FILE} "#ifndef NVG_SHARED\n# define NVG_SHARED\n#endif")
+    file(APPEND ${NANOGUI_CONFIG_FILE} "#ifndef NVG_SHARED\n")
+    file(APPEND ${NANOGUI_CONFIG_FILE} "# define NVG_SHARED\n")
+    file(APPEND ${NANOGUI_CONFIG_FILE} "#endif\n")
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT)
     target_compile_definitions(${PROJECT_NAME} PRIVATE NVG_SHARED)
@@ -473,7 +475,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     )
 
 if (NANOGUI_USE_GLAD AND NANOGUI_BUILD_SHARED)
-    file(APPEND ${NANOGUI_CONFIG_FILE} "#ifndef GLAD_GLAPI_EXPORT\n# define GLAD_GLAPI_EXPORT\n#endif")
+    file(APPEND ${NANOGUI_CONFIG_FILE} "#ifndef GLAD_GLAPI_EXPORT\n")
+    file(APPEND ${NANOGUI_CONFIG_FILE} "# define GLAD_GLAPI_EXPORT\n")
+    file(APPEND ${NANOGUI_CONFIG_FILE} "#endif\n")
     target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT_BUILD)
 endif()
 
