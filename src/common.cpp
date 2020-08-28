@@ -144,10 +144,15 @@ std::array<char, 8> utf8(int c) {
     seq[n] = '\0';
     switch (n) {
         case 6: seq[5] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0x4000000;
+        // fall through
         case 5: seq[4] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0x200000;
+        // fall through
         case 4: seq[3] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0x10000;
+        // fall through
         case 3: seq[2] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0x800;
+        // fall through
         case 2: seq[1] = 0x80 | (c & 0x3f); c = c >> 6; c |= 0xc0;
+        // fall through
         case 1: seq[0] = c;
     }
     return seq;
