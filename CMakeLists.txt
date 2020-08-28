@@ -391,8 +391,12 @@ if (NANOGUI_BUILD_PYTHON)
     target_compile_definitions(${PROJECT_NAME} PRIVATE -DNANOGUI_PYTHON)
 endif()
 
+# Generate config.h
+set(NANOGUI_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/nanogui-config.h")
+file(WRITE ${NANOGUI_CONFIG_FILE} "// Automatically generated do not edit\n\n#pragma once\n\n")
+
 # Compile/link flags for NanoGUI
-target_compile_definitions(${PROJECT_NAME} PUBLIC "NANOGUI_BUILD;NVG_BUILD")
+file(APPEND ${NANOGUI_CONFIG_FILE} "#define NANOGUI_BUILD\n#define NVG_BUILD\n")
 
 if (NANOGUI_USE_GLAD)
     target_include_directories(${PROJECT_NAME} PUBLIC
@@ -401,7 +405,7 @@ if (NANOGUI_USE_GLAD)
         )
     #TODO: Install GLAD in Windows to mrpt/gui/include
 
-    target_compile_definitions(${PROJECT_NAME} PUBLIC -DNANOGUI_GLAD)
+    file(APPEND ${NANOGUI_CONFIG_FILE} "#define NANOGUI_GLAD\n")
 endif()
 
 # Don't export ALL symbols for this project, since it seems to cause problems in MSVC:
@@ -444,12 +448,17 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 # NANOGUI itself:
 target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${${PROJECT_NAME}_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> # For nanogui-config.h
         $<INSTALL_INTERFACE:include/mrpt/nanogui/include>
         )
-
+        
 # Shared library mode: add dllimport/dllexport flags to all symbols
 if (NANOGUI_BUILD_SHARED)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC -DNANOGUI_SHARED -DNVG_SHARED -DGLAD_GLAPI_EXPORT)
+    file(APPEND ${NANOGUI_CONFIG_FILE} "#define NANOGUI_SHARED\n")
+    file(APPEND ${NANOGUI_CONFIG_FILE} "#ifndef NVG_SHARED\n# define NVG_SHARED\n#endif")
+
+    target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE NVG_SHARED)
 endif()
 
 # Ensure we use a valid .so.x.y.z file name according to common use:
@@ -464,7 +473,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     )
 
 if (NANOGUI_USE_GLAD AND NANOGUI_BUILD_SHARED)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC GLAD_GLAPI_EXPORT)
+    file(APPEND ${NANOGUI_CONFIG_FILE} "#ifndef GLAD_GLAPI_EXPORT\n# define GLAD_GLAPI_EXPORT\n#endif")
     target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT_BUILD)
 endif()
 
@@ -534,6 +543,12 @@ if (NANOGUI_INSTALL AND EXISTS "${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.c
 			${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
 		)
 	endif()
+	install(
+	FILES
+		${NANOGUI_CONFIG_FILE}
+	DESTINATION
+		${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+	)
 
     install(DIRECTORY
         include/nanogui
