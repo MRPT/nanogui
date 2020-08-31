@@ -762,8 +762,14 @@ else()
 endif()
 
 # Write nanogui-config.h
-file(READ ${NANOGUI_CONFIG_FILE} TMP_)
-if (NOT "${TMP_}" STREQUAL "${NANOGUI_CONFIG_FILE_CONTENT}")
+set(do_write_config 1)
+if (EXISTS ${NANOGUI_CONFIG_FILE})
+	file(READ ${NANOGUI_CONFIG_FILE} TMP_)
+	if ("${TMP_}" STREQUAL "${NANOGUI_CONFIG_FILE_CONTENT}")
+		set(do_write_config 0)
+	endif()
+endif()
+if (do_write_config)
 	file(WRITE ${NANOGUI_CONFIG_FILE} ${NANOGUI_CONFIG_FILE_CONTENT})
 endif()
 
