@@ -393,10 +393,12 @@ endif()
 
 # Generate config.h
 set(NANOGUI_CONFIG_FILE "${CMAKE_CURRENT_BINARY_DIR}/nanogui-config.h")
-file(WRITE ${NANOGUI_CONFIG_FILE} "// Automatically generated do not edit\n\n#pragma once\n\n")
+
+set(NANOGUI_CONFIG_FILE_CONTENT "")
+string(APPEND NANOGUI_CONFIG_FILE_CONTENT "// Automatically generated do not edit\n\n#pragma once\n\n")
 
 # Compile/link flags for NanoGUI
-file(APPEND ${NANOGUI_CONFIG_FILE} "#define NANOGUI_BUILD\n#define NVG_BUILD\n")
+string(APPEND NANOGUI_CONFIG_FILE_CONTENT "#define NANOGUI_BUILD\n#define NVG_BUILD\n")
 
 if (NANOGUI_USE_GLAD)
     target_include_directories(${PROJECT_NAME} PUBLIC
@@ -405,7 +407,7 @@ if (NANOGUI_USE_GLAD)
         )
     #TODO: Install GLAD in Windows to mrpt/gui/include
 
-    file(APPEND ${NANOGUI_CONFIG_FILE} "#define NANOGUI_GLAD\n")
+    string(APPEND NANOGUI_CONFIG_FILE_CONTENT "#define NANOGUI_GLAD\n")
 endif()
 
 # Don't export ALL symbols for this project, since it seems to cause problems in MSVC:
@@ -454,10 +456,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 # Shared library mode: add dllimport/dllexport flags to all symbols
 if (NANOGUI_BUILD_SHARED)
-    file(APPEND ${NANOGUI_CONFIG_FILE} "#define NANOGUI_SHARED\n")
-    file(APPEND ${NANOGUI_CONFIG_FILE} "#ifndef NVG_SHARED\n")
-    file(APPEND ${NANOGUI_CONFIG_FILE} "# define NVG_SHARED\n")
-    file(APPEND ${NANOGUI_CONFIG_FILE} "#endif\n")
+    string(APPEND NANOGUI_CONFIG_FILE_CONTENT "#define NANOGUI_SHARED\n")
+    string(APPEND NANOGUI_CONFIG_FILE_CONTENT "#ifndef NVG_SHARED\n")
+    string(APPEND NANOGUI_CONFIG_FILE_CONTENT "# define NVG_SHARED\n")
+    string(APPEND NANOGUI_CONFIG_FILE_CONTENT "#endif\n")
 
     target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT)
     target_compile_definitions(${PROJECT_NAME} PRIVATE NVG_SHARED)
@@ -475,9 +477,9 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     )
 
 if (NANOGUI_USE_GLAD AND NANOGUI_BUILD_SHARED)
-    file(APPEND ${NANOGUI_CONFIG_FILE} "#ifndef GLAD_GLAPI_EXPORT\n")
-    file(APPEND ${NANOGUI_CONFIG_FILE} "# define GLAD_GLAPI_EXPORT\n")
-    file(APPEND ${NANOGUI_CONFIG_FILE} "#endif\n")
+    string(APPEND NANOGUI_CONFIG_FILE_CONTENT "#ifndef GLAD_GLAPI_EXPORT\n")
+    string(APPEND NANOGUI_CONFIG_FILE_CONTENT "# define GLAD_GLAPI_EXPORT\n")
+    string(APPEND NANOGUI_CONFIG_FILE_CONTENT "#endif\n")
     target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT_BUILD)
 endif()
 
@@ -757,6 +759,12 @@ else()
       ${PROJECT_SOURCE_DIR}/include/nanogui/*.h
       > ${CMAKE_CURRENT_SOURCE_DIR}/python/py_doc.h)
 
+endif()
+
+# Write nanogui-config.h
+file(READ ${NANOGUI_CONFIG_FILE} TMP_)
+if (NOT "${TMP_}" STREQUAL "${NANOGUI_CONFIG_FILE_CONTENT}")
+	file(WRITE ${NANOGUI_CONFIG_FILE} ${NANOGUI_CONFIG_FILE_CONTENT})
 endif()
 
 # vim: set et ts=2 sw=2 ft=cmake nospell:
