@@ -131,6 +131,13 @@ public:
 
     /// Return the last observed mouse position value
     Vector2i mousePos() const { return mMousePos; }
+    
+    /// Returns the last mouse state (bitwise 1 << button)
+   int mouseState() const { return mMouseState; }
+
+   /// Returns the last mouse modifiers. Bitwise or of:
+   /// Shift=0x0001, Control=0x0002, Alt=0x0004, Super=0x0008
+   int mouseModifiers() const { return mModifiers; }
 
     /// Return a pointer to the underlying GLFW window data structure
     GLFWwindow *glfwWindow() { return mGLFWWindow; }
