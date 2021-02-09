@@ -377,7 +377,10 @@ elseif (APPLE)
     find_library(iokit_library IOKit)
     target_link_libraries(${PROJECT_NAME} PRIVATE ${cocoa_library} ${opengl_library} ${corevideo_library} ${iokit_library})
 elseif(CMAKE_SYSTEM MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "BSD")
-    target_link_libraries(${PROJECT_NAME} PRIVATE GL Xxf86vm Xrandr X11 pthread) # Xinerama Xcursor Xi
+    # Read: https://cmake.org/cmake/help/latest/module/FindOpenGL.html
+    # Prefer the "new" GLVND lib if possible:
+    find_package(OpenGL)
+    target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL Xxf86vm Xrandr X11 pthread) # Xinerama Xcursor Xi
     if (NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
         target_link_libraries(${PROJECT_NAME} PRIVATE rt)
     endif()
