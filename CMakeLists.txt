@@ -380,7 +380,12 @@ elseif(CMAKE_SYSTEM MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "BSD")
     # Read: https://cmake.org/cmake/help/latest/module/FindOpenGL.html
     # Prefer the "new" GLVND lib if possible:
     find_package(OpenGL)
-    target_link_libraries(${PROJECT_NAME} PRIVATE OpenGL::GL Xxf86vm Xrandr X11 pthread) # Xinerama Xcursor Xi
+    if (NOT "${CMAKE_VERSION}" VERSION_LESS "3.8.2")
+        set(NANOGUI_GL_LIB OpenGL::GL)
+    else()
+        set(NANOGUI_GL_LIB ${OPENGL_gl_LIBRARY})
+    endif()
+    target_link_libraries(${PROJECT_NAME} PRIVATE ${NANOGUI_GL_LIB} Xxf86vm Xrandr X11 pthread) # Xinerama Xcursor Xi
     if (NOT CMAKE_SYSTEM_NAME MATCHES "OpenBSD")
         target_link_libraries(${PROJECT_NAME} PRIVATE rt)
     endif()
