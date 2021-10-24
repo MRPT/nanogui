@@ -521,10 +521,6 @@ if (NANOGUI_INSTALL AND EXISTS "${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.c
 		COMPATIBILITY AnyNewerVersion
 	)
 
-	if(CMAKE_MRPT_USE_DEB_POSTFIXS)
-		set(this_lib_dev_INSTALL_PREFIX "libmrpt-nanogui-dev/usr/")
-	endif()
-
   if (WIN32)
     set(dstDir cmake)
   else()
@@ -554,20 +550,20 @@ if (NANOGUI_INSTALL AND EXISTS "${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.c
 		DIRECTORY
 			"${HEADERS_DIR}"
 		DESTINATION
-			${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+			include/mrpt/nanogui/include/
 		)
 	endif()
 	install(
 	FILES
 		${NANOGUI_CONFIG_FILE}
 	DESTINATION
-		${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+		include/mrpt/nanogui/include/
 	)
 
     install(DIRECTORY
         include/nanogui
         DESTINATION
-        ${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+        include/mrpt/nanogui/include/
         FILES_MATCHING PATTERN "*.h")
 
     install(FILES
@@ -578,7 +574,7 @@ if (NANOGUI_INSTALL AND EXISTS "${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.c
         ext/nanovg/src/stb_truetype.h
         ext/nanovg/src/nanovg_gl.h
         DESTINATION
-        ${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+        include/mrpt/nanogui/include/
         )
 
     # GLFW3 if not present in the system:
@@ -587,7 +583,7 @@ if (NANOGUI_INSTALL AND EXISTS "${MRPT_SOURCE_DIR}/parse-files/mrpt-xxx-config.c
         install(DIRECTORY
             ext/glfw/include/GLFW
             DESTINATION
-            ${this_lib_dev_INSTALL_PREFIX}include/mrpt/nanogui/include/
+            include/mrpt/nanogui/include/
             )
     endif()
 endif()
