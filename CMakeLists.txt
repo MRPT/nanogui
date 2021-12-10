@@ -206,7 +206,7 @@ endif()
 # Always use libc++ on Clang
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   CHECK_CXX_COMPILER_AND_LINKER_FLAGS(HAS_LIBCPP "-stdlib=libc++" "-stdlib=libc++")
-  if (HAS_LIBCPP)
+  if (HAS_LIBCPP AND APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libc++")
@@ -220,6 +220,14 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
   else()
     message(STATUS "NanoGUI: NOT using libc++.")
+    # From: https://stackoverflow.com/a/16788372/1631514
+    # I would use the native library for each OS i.e. libstdc++ on GNU/Linux and libc++ on Mac OS X.
+    # libc++ is not 100% complete on GNU/Linux, and there's no real advantage to using it when libstdc++
+    # is more complete. Also, if you want to link to any other libraries written in C++ they will almost certainly have been built with libstdc++ so you'll need to link with that too to use them.
+    # Use the libstdc++ lib vs. libc++, to avoid some build errors in MacOS
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
   endif()
 endif()
 
