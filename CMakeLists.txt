@@ -158,6 +158,9 @@ endif()
 
 # Various optimizations for shared library release builds
 if (NANOGUI_BUILD_SHARED)
+  # Disabled by default due to this Eigen issue: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=1000780
+  option(NANOGUI_ENABLE_LINK_TIME_OPTIMIZATION "Enable lto (link time optimization)" OFF)
+
   if (U_CMAKE_BUILD_TYPE MATCHES REL AND CMAKE_CXX_COMPILER_ID MATCHES "^(GNU|Clang)$")
     # Set the default symbol visibility to hidden
     if (NOT CMAKE_CXX_FLAGS MATCHES "-fvisibility")
@@ -165,7 +168,7 @@ if (NANOGUI_BUILD_SHARED)
     endif()
 
     # Enable link time optimization
-    if (NOT CMAKE_CXX_FLAGS MATCHES "-flto")
+    if (NOT CMAKE_CXX_FLAGS MATCHES "-flto" AND NANOGUI_ENABLE_LINK_TIME_OPTIMIZATION)
       if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
         set(LTO_CXX_FLAGS "-flto=thin")
         set(LTO_LINKER_FLAGS "-flto=thin")
