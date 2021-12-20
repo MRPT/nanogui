@@ -258,8 +258,18 @@ endif()
 
 # Run simple cmake converter to put font files into the data segment
 
+# Search fonts from system packages first, rely on built-in as last resource.
+# This avoid shipping dupplicated & copyrighted files in Debian packages:
+# * Roboto-Bold.ttf,  Roboto-Regular.ttf => apt install fonts-roboto-fontface
+# * entypo+ is a custom font from: https://github.com/svenevs/nanogui-entypo
+#   (it is NOT the same one as provided by the entypo debian package)
+find_file(ENTYPO_TTF_FILE           entypo.ttf          PATHS "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
+find_file(ROBOTO_BOLD_TTF_FILE      Roboto-Bold.ttf     PATHS /usr/share/fonts/truetype/roboto-fontface/roboto/ "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
+find_file(ROBOTO_REGULAR_TTF_FILE   Roboto-Regular.ttf  PATHS /usr/share/fonts/truetype/roboto-fontface/roboto/ "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
+
 # Glob up resource files
-file(GLOB resources "${CMAKE_CURRENT_SOURCE_DIR}/resources/*.ttf")
+set(resources ${ENTYPO_TTF_FILE} ${ROBOTO_BOLD_TTF_FILE} ${ROBOTO_REGULAR_TTF_FILE})
+message(STATUS "Font resources: ${resources}")
 
 # Concatenate resource files into a comma separated string
 string (REGEX REPLACE "([^\\]|^);" "\\1," resources_string "${resources}")
