@@ -265,7 +265,6 @@ endif()
 # * Roboto-Bold.ttf,  Roboto-Regular.ttf => apt install fonts-roboto-fontface
 # * entypo+ is a custom font from: https://github.com/svenevs/nanogui-entypo
 #   (it is NOT the same one as provided by the entypo debian package)
-message(STATUS "******* CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 find_file(ENTYPO_TTF_FILE           entypo.ttf          PATHS "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
 find_file(ROBOTO_BOLD_TTF_FILE      Roboto-Bold.ttf     PATHS /usr/share/fonts/truetype/roboto-fontface/roboto/ "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
 find_file(ROBOTO_REGULAR_TTF_FILE   Roboto-Regular.ttf  PATHS /usr/share/fonts/truetype/roboto-fontface/roboto/ "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
