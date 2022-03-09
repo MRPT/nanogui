@@ -223,14 +223,16 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
   else()
     message(STATUS "NanoGUI: NOT using libc++.")
-    # From: https://stackoverflow.com/a/16788372/1631514
-    # I would use the native library for each OS i.e. libstdc++ on GNU/Linux and libc++ on Mac OS X.
-    # libc++ is not 100% complete on GNU/Linux, and there's no real advantage to using it when libstdc++
-    # is more complete. Also, if you want to link to any other libraries written in C++ they will almost certainly have been built with libstdc++ so you'll need to link with that too to use them.
-    # Use the libstdc++ lib vs. libc++, to avoid some build errors in MacOS
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
+    if (NOT ("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")) # just use defaults in Emscripten
+      # From: https://stackoverflow.com/a/16788372/1631514
+      # I would use the native library for each OS i.e. libstdc++ on GNU/Linux and libc++ on Mac OS X.
+      # libc++ is not 100% complete on GNU/Linux, and there's no real advantage to using it when libstdc++
+      # is more complete. Also, if you want to link to any other libraries written in C++ they will almost certainly have been built with libstdc++ so you'll need to link with that too to use them.
+      # Use the libstdc++ lib vs. libc++, to avoid some build errors in MacOS
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libstdc++")
+      set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libstdc++")
+      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -stdlib=libstdc++")
+    endif()
   endif()
 endif()
 
@@ -263,6 +265,7 @@ endif()
 # * Roboto-Bold.ttf,  Roboto-Regular.ttf => apt install fonts-roboto-fontface
 # * entypo+ is a custom font from: https://github.com/svenevs/nanogui-entypo
 #   (it is NOT the same one as provided by the entypo debian package)
+message(STATUS "******* CMAKE_CURRENT_SOURCE_DIR: ${CMAKE_CURRENT_SOURCE_DIR}")
 find_file(ENTYPO_TTF_FILE           entypo.ttf          PATHS "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
 find_file(ROBOTO_BOLD_TTF_FILE      Roboto-Bold.ttf     PATHS /usr/share/fonts/truetype/roboto-fontface/roboto/ "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
 find_file(ROBOTO_REGULAR_TTF_FILE   Roboto-Regular.ttf  PATHS /usr/share/fonts/truetype/roboto-fontface/roboto/ "${CMAKE_CURRENT_SOURCE_DIR}/resources" REQUIRED)
