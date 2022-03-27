@@ -371,6 +371,11 @@ add_library(${PROJECT_NAME}  ${NANOGUI_LIBRARY_TYPE}
   ${OPTIONAL_GLFW_OBJECTS}
 )
 
+# Enable GLES3 in nanovg, if we are in Emscripten:
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Emscripten")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE NANOVG_GLES3_IMPLEMENTATION)
+endif()
+
 # create alias to make CMake scripts to work as if the project has been really imported:
 add_library(mrpt::nanogui ALIAS ${PROJECT_NAME})
 

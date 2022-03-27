@@ -36,7 +36,11 @@
 #endif
 
 /* Allow enforcing the GL2 implementation of NanoVG */
+
+// JLBC for Emscripten port:
+#ifndef NANOVG_GLES3_IMPLEMENTATION
 #define NANOVG_GL3_IMPLEMENTATION
+#endif
 #include <nanovg_gl.h>
 
 // JLBC for MRPT: Fix for older GLFW version in Ubuntu Xenial:
@@ -345,7 +349,12 @@ void Screen::initialize(GLFWwindow *window, bool shutdownGLFWOnDestruct) {
     flags |= NVG_DEBUG;
 #endif
 
+#ifdef NANOVG_GLES3_IMPLEMENTATION
+    mNVGContext = nvgCreateGLES3(flags);
+#else
     mNVGContext = nvgCreateGL3(flags);
+#endif
+
     if (mNVGContext == nullptr)
         throw std::runtime_error("Could not initialize NanoVG!");
 
@@ -373,7 +382,13 @@ Screen::~Screen() {
             glfwDestroyCursor(mCursors[i]);
     }
     if (mNVGContext)
+    {
+#ifdef NANOVG_GLES3_IMPLEMENTATION
+        nvgDeleteGLES3(mNVGContext);
+#else
         nvgDeleteGL3(mNVGContext);
+#endif
+    }
     if (mGLFWWindow && mShutdownGLFWOnDestruct)
         glfwDestroyWindow(mGLFWWindow);
 }
