@@ -57,8 +57,8 @@ void ComboBox::setItems(const std::vector<std::string> &items, const std::vector
             setCaption(mItemsShort[index]);
             setPushed(false);
             popup()->setVisible(false);
-            if (mCallback)
-                mCallback(index);
+            if (mCallbackCB)
+                mCallbackCB(index);
         });
         index++;
     }
@@ -68,13 +68,13 @@ void ComboBox::setItems(const std::vector<std::string> &items, const std::vector
 bool ComboBox::scrollEvent(const Vector2i &p, const Vector2f &rel) {
     if (rel.y() < 0) {
         setSelectedIndex(std::min(mSelectedIndex+1, (int)(items().size()-1)));
-        if (mCallback)
-            mCallback(mSelectedIndex);
+        if (mCallbackCB)
+            mCallbackCB(mSelectedIndex);
         return true;
     } else if (rel.y() > 0) {
         setSelectedIndex(std::max(mSelectedIndex-1, 0));
-        if (mCallback)
-            mCallback(mSelectedIndex);
+        if (mCallbackCB)
+            mCallbackCB(mSelectedIndex);
         return true;
     }
     return Widget::scrollEvent(p, rel);

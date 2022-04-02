@@ -195,7 +195,7 @@ protected:
     GLFWwindow *mGLFWWindow;
     NVGcontext *mNVGContext;
     GLFWcursor *mCursors[(int) Cursor::CursorCount];
-    Cursor mCursor;
+    // Cursor mCursor;  // JLBC: we already have one inherited in Widget
     std::vector<Widget *> mFocusPath;
     Vector2i mFBSize;
     float mPixelRatio;

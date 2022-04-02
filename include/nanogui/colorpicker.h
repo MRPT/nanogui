@@ -39,7 +39,7 @@ public:
     ColorPicker(Widget *parent, const Color& color = Color(1.0f, 0.0f, 0.0f, 1.0f));
 
     /// The callback executed when the ColorWheel changes.
-    std::function<void(const Color &)> callback() const { return mCallback; }
+    std::function<void(const Color &)> callback() const { return mCallbackCP; }
 
     /**
      * Sets the callback is executed as the ColorWheel itself is changed.  Set
@@ -48,8 +48,8 @@ public:
      * \ref nanogui::ColorPicker::mPickButton.
      */
     void setCallback(const std::function<void(const Color &)> &callback) {
-        mCallback = callback;
-        mCallback(backgroundColor());
+        mCallbackCP = callback;
+        mCallbackCP(backgroundColor());
     }
 
     /**
@@ -86,7 +86,7 @@ public:
 
 protected:
     /// The "fast" callback executed when the ColorWheel has changed.
-    std::function<void(const Color &)> mCallback;
+    std::function<void(const Color &)> mCallbackCP;
 
     /**
      * The callback to execute when a new Color is selected on the ColorWheel

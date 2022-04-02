@@ -39,10 +39,10 @@ public:
              const std::vector<std::string> &itemsShort);
 
     /// The callback to execute for this ComboBox.
-    std::function<void(int)> callback() const { return mCallback; }
+    std::function<void(int)> callback() const { return mCallbackCB; }
 
     /// Sets the callback to execute for this ComboBox.
-    void setCallback(const std::function<void(int)> &callback) { mCallback = callback; }
+    void setCallback(const std::function<void(int)> &callback) { mCallbackCB = callback; }
 
     /// The current index this ComboBox has selected.
     int selectedIndex() const { return mSelectedIndex; }
@@ -79,7 +79,7 @@ protected:
     std::vector<std::string> mItemsShort;
 
     /// The callback for this ComboBox.
-    std::function<void(int)> mCallback;
+    std::function<void(int)> mCallbackCB;
 
     /// The current index this ComboBox has selected.
     int mSelectedIndex;
