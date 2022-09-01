@@ -61,21 +61,23 @@ void init() {
 
 static bool mainloop_active = false;
 
-void mainloop(int refresh) {
+void mainloop(int idleLoopPeriod, int minRepaintPeriod) {
     if (mainloop_active)
         throw std::runtime_error("Main loop is already running!");
 
     mainloop_active = true;
-
+    
+    std::chrono::system_clock::time_point lastRepaint;
+    
     std::thread refresh_thread;
-    if (refresh > 0) {
+    if (idleLoopPeriod > 0) {
         /* If there are no mouse/keyboard events, try to refresh the
            view roughly every 50 ms (default); this is to support animations
            such as progress bars while keeping the system load
            reasonably low */
         refresh_thread = std::thread(
-            [refresh]() {
-                std::chrono::milliseconds time(refresh);
+            [idleLoopPeriod]() {
+                std::chrono::milliseconds time(idleLoopPeriod);
                 while (mainloop_active) {
                     std::this_thread::sleep_for(time);
                     glfwPostEmptyEvent();
@@ -95,7 +97,22 @@ void mainloop(int refresh) {
                     screen->setVisible(false);
                     continue;
                 }
-                screen->drawAll();
+                
+                // Process optional periodic tasks in the screen:
+                screen->onIdleLoopTasks();
+
+                // Only repaint if the minimum period is satisfied:
+                const auto tNow = std::chrono::system_clock::now();
+                
+                if (minRepaintPeriod<=0 || 
+                    (lastRepaint==std::chrono::system_clock::time_point() ||
+                    std::chrono::duration_cast<std::chrono::milliseconds>(tNow - lastRepaint).count() >= minRepaintPeriod
+                    ))
+                {
+                  screen->drawAll();
+                  lastRepaint = tNow;
+                }
+                
                 numScreens++;
             }
 
@@ -116,7 +133,7 @@ void mainloop(int refresh) {
         leave();
     }
 
-    if (refresh > 0)
+    if (idleLoopPeriod > 0)
         refresh_thread.join();
 }
 

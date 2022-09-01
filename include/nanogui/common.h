@@ -421,11 +421,17 @@ extern NANOGUI_EXPORT void shutdown();
 /**
  * \brief Enter the application main loop
  *
- * \param refresh
+ * \param idleLoopPeriod
  *     NanoGUI issues a redraw call whenever an keyboard/mouse/.. event is
  *     received. In the absence of any external events, it enforces a redraw
  *     once every ``refresh`` milliseconds. To disable the refresh timer,
  *     specify a negative value here.
+ *     This also defines the minimum period (milliseconds) between calls to
+ *     Screen::onIdleLoopTasks()
+ *
+ * \param minRepaintPeriod
+ *     If >0, this defines a minimum period (milliseconds) between GUI
+ *     repaint events.
  *
  * \param detach
  *     This parameter only exists in the Python bindings. When the active
@@ -454,7 +460,8 @@ extern NANOGUI_EXPORT void shutdown();
  *     wait for the termination of the main loop and then swap the two thread
  *     environments back into their initial configuration.
  */
-extern NANOGUI_EXPORT void mainloop(int refresh = 50);
+extern NANOGUI_EXPORT
+void mainloop(int idleLoopPeriod = 50, int minRepaintPeriod= 50);
 
 /// Request the application main loop to terminate (e.g. if you detached mainloop).
 extern NANOGUI_EXPORT void leave();
