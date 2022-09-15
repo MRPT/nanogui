@@ -18,6 +18,7 @@
 #include <fstream>
 #include <memory>
 #include <set>
+#include <vector>
 
 #ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace half_float { class half; }
@@ -214,28 +215,28 @@ template <typename T1, typename T2> struct serialization_helper<std::pair<T1, T2
     }
 
     static void write(Serializer &s, const std::pair<T1, T1> *value, size_t count) {
-        std::unique_ptr<T1> first (new T1[count]);
-        std::unique_ptr<T2> second(new T2[count]);
+        std::vector<T1> first(count);
+        std::vector<T2> second(count);
 
         for (size_t i = 0; i<count; ++i) {
-            first.get()[i]  = value[i].first;
-            second.get()[i] = value[i].second;
+            first[i]  = value[i].first;
+            second[i] = value[i].second;
         }
 
-        serialization_helper<T1>::write(s, first.get(), count);
-        serialization_helper<T2>::write(s, second.get(), count);
+        serialization_helper<T1>::write(s, first.data(), count);
+        serialization_helper<T2>::write(s, second.data(), count);
     }
 
     static void read(Serializer &s, std::pair<T1, T1> *value, size_t count) {
-        std::unique_ptr<T1> first (new T1[count]);
-        std::unique_ptr<T2> second(new T2[count]);
+        std::vector<T1> first(count);
+        std::vector<T2> second(count);
 
-        serialization_helper<T1>::read(s, first.get(), count);
-        serialization_helper<T2>::read(s, second.get(), count);
+        serialization_helper<T1>::read(s, first.data(), count);
+        serialization_helper<T2>::read(s, second.data(), count);
 
         for (size_t i = 0; i<count; ++i) {
-            value[i].first = first.get()[i];
-            value[i].second = second.get()[i];
+            value[i].first = first[i];
+            value[i].second = second[i];
         }
     }
 };
