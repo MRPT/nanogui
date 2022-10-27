@@ -17,6 +17,7 @@
 #include <nanogui/theme.h>
 #include <nanogui/window.h>
 
+#include <cstdlib>	// getenv()
 #include <iostream>
 #include <map>
 
@@ -210,23 +211,25 @@ Screen::Screen(
 			std::to_string(glMajor) + "."s + std::to_string(glMinor) +
 			" context!"s);
 
-#if 1
-	printf(
-		"GLFW_CLIENT_API: 0x%08X\n",
-		glfwGetWindowAttrib(mGLFWWindow, GLFW_CLIENT_API));
-	printf(
-		"GLFW_CONTEXT_CREATION_API: 0x%08X\n",
-		glfwGetWindowAttrib(mGLFWWindow, GLFW_CONTEXT_CREATION_API));
-	printf(
-		"GLFW_OPENGL_PROFILE: 0x%08X\n",
-		glfwGetWindowAttrib(mGLFWWindow, GLFW_OPENGL_PROFILE));
-	printf(
-		"GLFW_CONTEXT_VERSION_MAJOR: %i\n",
-		glfwGetWindowAttrib(mGLFWWindow, GLFW_CONTEXT_VERSION_MAJOR));
-	printf(
-		"GLFW_CONTEXT_VERSION_MINOR: %i\n",
-		glfwGetWindowAttrib(mGLFWWindow, GLFW_CONTEXT_VERSION_MINOR));
-#endif
+	if (std::getenv("NANOGUI_VERBOSE") != nullptr)
+	{
+		printf("[nanogui::Screen] Created window with:\n");
+		printf(
+			" GLFW_CLIENT_API: 0x%08X\n",
+			glfwGetWindowAttrib(mGLFWWindow, GLFW_CLIENT_API));
+		printf(
+			" GLFW_CONTEXT_CREATION_API: 0x%08X\n",
+			glfwGetWindowAttrib(mGLFWWindow, GLFW_CONTEXT_CREATION_API));
+		printf(
+			" GLFW_OPENGL_PROFILE: 0x%08X\n",
+			glfwGetWindowAttrib(mGLFWWindow, GLFW_OPENGL_PROFILE));
+		printf(
+			" GLFW_CONTEXT_VERSION_MAJOR: %i\n",
+			glfwGetWindowAttrib(mGLFWWindow, GLFW_CONTEXT_VERSION_MAJOR));
+		printf(
+			" GLFW_CONTEXT_VERSION_MINOR: %i\n",
+			glfwGetWindowAttrib(mGLFWWindow, GLFW_CONTEXT_VERSION_MINOR));
+	}
 
 	glfwMakeContextCurrent(mGLFWWindow);
 
