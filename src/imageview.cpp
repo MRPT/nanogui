@@ -132,7 +132,7 @@ void ImageView::fit() {
 }
 
 void ImageView::setScaleCentered(float scale) {
-    auto centerPosition = sizeF() / 2;
+    Vector2f centerPosition = sizeF() / 2;
     auto p = imageCoordinateAt(centerPosition);
     mScale = scale;
     setImageCoordinateAt(centerPosition, p);
