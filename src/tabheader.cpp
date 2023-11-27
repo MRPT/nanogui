@@ -259,12 +259,12 @@ void TabHeader::ensureTabVisible(int index) {
 std::pair<Vector2i, Vector2i> TabHeader::visibleButtonArea() const {
     if (mVisibleStart == mVisibleEnd)
         return { Vector2i::Zero(), Vector2i::Zero() };
-    auto topLeft = mPos + Vector2i(theme()->mTabControlWidth, 0);
+    Vector2i topLeft = mPos + Vector2i(theme()->mTabControlWidth, 0);
     auto width = std::accumulate(visibleBegin(), visibleEnd(), theme()->mTabControlWidth,
                                  [](int acc, const TabButton& tb) {
         return acc + tb.size().x();
     });
-    auto bottomRight = mPos + Vector2i(width, mSize.y());
+    Vector2i bottomRight = mPos + Vector2i(width, mSize.y());
     return { topLeft, bottomRight };
 }
 
@@ -275,8 +275,8 @@ std::pair<Vector2i, Vector2i> TabHeader::activeButtonArea() const {
                                  [](int acc, const TabButton& tb) {
         return acc + tb.size().x();
     });
-    auto topLeft = mPos + Vector2i(width, 0);
-    auto bottomRight = mPos + Vector2i(width + activeIterator()->size().x(), mSize.y());
+    Vector2i topLeft = mPos + Vector2i(width, 0);
+    Vector2i bottomRight = mPos + Vector2i(width + activeIterator()->size().x(), mSize.y());
     return { topLeft, bottomRight };
 }
 
