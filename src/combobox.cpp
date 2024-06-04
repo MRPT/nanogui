@@ -32,7 +32,7 @@ ComboBox::ComboBox(Widget *parent, const std::vector<std::string> &items, const 
 void ComboBox::setSelectedIndex(int idx) {
     if (mItemsShort.empty())
         return;
-    const std::vector<Widget *> &children = popup()->children();
+    const auto &children = popup()->children();
     ((Button *) children[mSelectedIndex])->setPushed(false);
     ((Button *) children[idx])->setPushed(true);
     mSelectedIndex = idx;

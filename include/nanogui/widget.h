@@ -15,6 +15,7 @@
 #include <nanogui/object.h>
 #include <nanogui/theme.h>
 #include <vector>
+#include <deque>
 
 NAMESPACE_BEGIN(nanogui)
 
@@ -124,7 +125,7 @@ public:
     int childCount() const { return (int) mChildren.size(); }
 
     /// Return the list of child widgets of the current widget
-    const std::vector<Widget *> &children() const { return mChildren; }
+    const std::deque<Widget *> &children() const { return mChildren; }
 
     /**
      * \brief Add a child widget to the current widget at
@@ -280,7 +281,7 @@ protected:
     ref<Layout> mLayout;
     std::string mId;
     Vector2i mPos, mSize, mFixedSize;
-    std::vector<Widget *> mChildren;
+    std::deque<Widget *> mChildren;
 
     /**
      * Whether or not this Widget is currently visible.  When a Widget is not
