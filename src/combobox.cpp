@@ -52,10 +52,12 @@ void ComboBox::setItems(const std::vector<std::string> &items, const std::vector
     for (const auto &str: items) {
         Button *button = new Button(mPopup, str);
         button->setFlags(Button::RadioButton);
+        button->setFontSize(fontSize());
         button->setCallback([&, index] {
             mSelectedIndex = index;
             setCaption(mItemsShort[index]);
             setPushed(false);
+
             popup()->setVisible(false);
             if (mCallbackCB)
                 mCallbackCB(index);
