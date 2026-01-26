@@ -355,6 +355,7 @@ add_library(${PROJECT_NAME}  ${NANOGUI_LIBRARY_TYPE}
   include/nanogui/tabheader.h src/tabheader.cpp
   include/nanogui/tabwidget.h src/tabwidget.cpp
   include/nanogui/glcanvas.h src/glcanvas.cpp
+  include/nanogui/dockablepanel.h src/dockablepanel.cpp
   include/nanogui/formhelper.h
   include/nanogui/toolbutton.h
   include/nanogui/opengl.h
@@ -625,6 +626,7 @@ if(NANOGUI_BUILD_EXAMPLE)
   add_executable(example3      src/example3.cpp)
   add_executable(example4      src/example4.cpp)
   add_executable(example_icons src/example_icons.cpp)
+  add_executable(example_dockpanel src/example_dockpanel.cpp)
 
   set(GLLIB "")
   if (WIN32)
@@ -640,6 +642,7 @@ if(NANOGUI_BUILD_EXAMPLE)
   target_link_libraries(example3      ${PROJECT_NAME} ${GLLIB})
   target_link_libraries(example4      ${PROJECT_NAME} ${GLLIB})
   target_link_libraries(example_icons ${PROJECT_NAME} ${GLLIB})
+  target_link_libraries(example_dockpanel ${PROJECT_NAME} ${GLLIB})
 
   # Copy icons for example application
   file(COPY resources/icons DESTINATION ${CMAKE_CURRENT_BINARY_DIR})

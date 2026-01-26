@@ -36,6 +36,11 @@ public:
     /// Set whether or not this is a modal dialog
     void setModal(bool modal) { mModal = modal; }
 
+    /// Is this window draggable? (default: true)
+    bool draggable() const { return mDraggable; }
+    /// Set whether or not this window can be dragged by its title bar
+    void setDraggable(bool draggable) { mDraggable = draggable; }
+
     /// Return the panel used to house window buttons
     Widget *buttonPanel();
 
@@ -67,6 +72,7 @@ protected:
     Widget *mButtonPanel;
     bool mModal;
     bool mDrag;
+    bool mDraggable = true;  ///< Whether the window can be dragged (default: true)
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };

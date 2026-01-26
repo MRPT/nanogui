@@ -39,3 +39,4 @@
 #include <nanogui/tabheader.h>
 #include <nanogui/tabwidget.h>
 #include <nanogui/glcanvas.h>
+#include <nanogui/dockablepanel.h>

@@ -19,14 +19,19 @@
 NAMESPACE_BEGIN(nanogui)
 
 Window::Window(Widget *parent, const std::string &title)
-    : Widget(parent), mTitle(title), mButtonPanel(nullptr), mModal(false), mDrag(false) { }
+    : Widget(parent), mTitle(title), mButtonPanel(nullptr), mModal(false),
+      mDrag(false), mDraggable(true) { }
 
 Vector2i Window::preferredSize(NVGcontext *ctx) const {
     if (mButtonPanel)
+    {
         mButtonPanel->setVisible(false);
+    }
     Vector2i result = Widget::preferredSize(ctx);
     if (mButtonPanel)
+    {
         mButtonPanel->setVisible(true);
+    }
 
     nvgFontSize(ctx, 18.0f);
     nvgFontFace(ctx, "sans-bold");
@@ -34,7 +39,8 @@ Vector2i Window::preferredSize(NVGcontext *ctx) const {
     nvgTextBounds(ctx, 0, 0, mTitle.c_str(), nullptr, bounds);
 
     return result.cwiseMax(Vector2i(
-        bounds[2]-bounds[0] + 20, bounds[3]-bounds[1]
+        static_cast<int>(bounds[2] - bounds[0] + 20),
+        static_cast<int>(bounds[3] - bounds[1])
     ));
 }
 
@@ -64,7 +70,8 @@ void Window::performLayout(NVGcontext *ctx) {
 }
 
 void Window::draw(NVGcontext *ctx) {
-    int ds = mTheme->mWindowDropShadowSize, cr = mTheme->mWindowCornerRadius;
+    int ds = mTheme->mWindowDropShadowSize;
+    int cr = mTheme->mWindowCornerRadius;
     int hh = mTheme->mWindowHeaderHeight;
 
     /* Draw window */
@@ -117,7 +124,7 @@ void Window::draw(NVGcontext *ctx) {
 
         nvgBeginPath(ctx);
         nvgMoveTo(ctx, mPos.x() + 0.5f, mPos.y() + hh - 1.5f);
-        nvgLineTo(ctx, mPos.x() + mSize.x() - 0.5f, mPos.y() + hh - 1.5);
+        nvgLineTo(ctx, mPos.x() + mSize.x() - 0.5f, mPos.y() + hh - 1.5f);
         nvgStrokeColor(ctx, mTheme->mWindowHeaderSepBot);
         nvgStroke(ctx);
 
@@ -144,20 +151,24 @@ void Window::draw(NVGcontext *ctx) {
 void Window::dispose() {
     Widget *widget = this;
     while (widget->parent())
+    {
         widget = widget->parent();
-    ((Screen *) widget)->disposeWindow(this);
+    }
+    (dynamic_cast<Screen *>(widget))->disposeWindow(this);
 }
 
 void Window::center() {
     Widget *widget = this;
     while (widget->parent())
+    {
         widget = widget->parent();
-    ((Screen *) widget)->centerWindow(this);
+    }
+    (dynamic_cast<Screen *>(widget))->centerWindow(this);
 }
 
 bool Window::mouseDragEvent(const Vector2i &, const Vector2i &rel,
                             int button, int /* modifiers */) {
-    if (mDrag && (button & (1 << GLFW_MOUSE_BUTTON_1)) != 0) {
+    if (mDrag && mDraggable && (button & (1 << GLFW_MOUSE_BUTTON_1)) != 0) {
         mPos += rel;
         mPos = mPos.cwiseMax(Vector2i::Zero());
         mPos = mPos.cwiseMin(parent()->size() - mSize);
@@ -168,9 +179,11 @@ bool Window::mouseDragEvent(const Vector2i &, const Vector2i &rel,
 
 bool Window::mouseButtonEvent(const Vector2i &p, int button, bool down, int modifiers) {
     if (Widget::mouseButtonEvent(p, button, down, modifiers))
+    {
         return true;
+    }
     if (button == GLFW_MOUSE_BUTTON_1) {
-        mDrag = down && (p.y() - mPos.y()) < mTheme->mWindowHeaderHeight;
+        mDrag = down && mDraggable && (p.y() - mPos.y()) < mTheme->mWindowHeaderHeight;
         return true;
     }
     return false;
@@ -189,14 +202,27 @@ void Window::save(Serializer &s) const {
     Widget::save(s);
     s.set("title", mTitle);
     s.set("modal", mModal);
+    s.set("draggable", mDraggable);
 }
 
 bool Window::load(Serializer &s) {
-    if (!Widget::load(s)) return false;
-    if (!s.get("title", mTitle)) return false;
-    if (!s.get("modal", mModal)) return false;
+    if (!Widget::load(s))
+    {
+        return false;
+    }
+    if (!s.get("title", mTitle))
+    {
+        return false;
+    }
+    if (!s.get("modal", mModal))
+    {
+        return false;
+    }
+    // Optional for backward compatibility
+    s.get("draggable", mDraggable);
     mDrag = false;
     return true;
 }
+
 
 NAMESPACE_END(nanogui)
