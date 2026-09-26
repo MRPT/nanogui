@@ -20,6 +20,7 @@
 #include <nanogui/window.h>
 #include <nanogui/screen.h>
 #include <algorithm>
+#include <cassert>
 
 NAMESPACE_BEGIN(nanogui)
 

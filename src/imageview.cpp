@@ -16,6 +16,7 @@
 #include <nanogui/screen.h>
 #include <nanogui/theme.h>
 #include <cmath>
+#include <cassert>
 
 NAMESPACE_BEGIN(nanogui)
 

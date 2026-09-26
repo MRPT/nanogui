@@ -16,6 +16,7 @@
 #include <nanogui/opengl.h>
 #include <numeric>
 #include <iostream>
+#include <cassert>
 
 NAMESPACE_BEGIN(nanogui)
 

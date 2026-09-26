@@ -13,6 +13,7 @@
 */
 
 #include <nanogui/stackedwidget.h>
+#include <cassert>
 
 NAMESPACE_BEGIN(nanogui)
 
