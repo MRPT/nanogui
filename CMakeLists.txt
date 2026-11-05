@@ -57,8 +57,18 @@ else()
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-deprecated-declarations")
     endif()
 
+    # Compile GLFW into this library (as upstream NanoGUI does), so there is
+    # no separate GLFW library to install, export or ship:
+    set(GLFW_LIBRARY_TYPE OBJECT CACHE STRING "" FORCE)
     add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/ext/glfw" "ext_build/glfw")
-    set(GLFW_LIBRARIES glfw)
+    if (BUILD_SHARED_LIBS)
+        # Export the GLFW API (users of this library may call it directly), but
+        # not the GLFW internals:
+        target_compile_definitions(glfw PRIVATE _GLFW_BUILD_DLL)
+        if (UNIX)
+            target_compile_options(glfw PRIVATE "-fvisibility=hidden")
+        endif()
+    endif()
 endif()
 
 # -------------------------------------------------------------------------
@@ -189,7 +199,12 @@ elseif(CMAKE_SYSTEM MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "BSD")
     endif()
 endif()
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES})
+if (GLFW_FOUND)
+    target_link_libraries(${PROJECT_NAME} PUBLIC ${GLFW_LIBRARIES})
+else()
+    # PRIVATE: users get the GLFW objects through this library, not again.
+    target_link_libraries(${PROJECT_NAME} PRIVATE $<BUILD_INTERFACE:glfw>)
+endif()
 
 # Target Specific Flags
 if (APPLE)
@@ -227,7 +242,8 @@ if (BUILD_SHARED_LIBS)
     target_compile_definitions(${PROJECT_NAME} PRIVATE GLAD_GLAPI_EXPORT NVG_SHARED)
     
     if(NOT GLFW_FOUND)
-        set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY COMPILE_DEFINITIONS "GLFW_DLL")
+        # Users import the GLFW API from this library (only matters on Windows):
+        target_compile_definitions(${PROJECT_NAME} INTERFACE GLFW_DLL)
     endif()
     if (NANOGUI_USE_GLAD)
         string(APPEND NANOGUI_CONFIG_FILE_CONTENT "#ifndef GLAD_GLAPI_EXPORT\n# define GLAD_GLAPI_EXPORT\n#endif\n")
